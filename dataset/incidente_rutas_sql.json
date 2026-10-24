@@ -1,5 +1,5 @@
 {
-	"name": "incidente_ruta_sql",
+	"name": "incidente_rutas_sql",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "sql_erp_transporte",
