@@ -27,6 +27,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "xls"
+				},
+				{
+					"dataset": {
+						"referenceName": "bronze_paradas_2023_xls",
+						"type": "DatasetReference"
+					},
+					"name": "xls2"
 				}
 			],
 			"sinks": [
@@ -50,6 +57,9 @@
 				},
 				{
 					"name": "union2"
+				},
+				{
+					"name": "select3"
 				}
 			],
 			"scriptLines": [
@@ -95,6 +105,19 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> xls",
+				"source(output(",
+				"          nro_parada as string,",
+				"          nombre_parada as string,",
+				"          zona as string,",
+				"          latitud as string,",
+				"          longitud as string,",
+				"          fecha_desde as string,",
+				"          fecha_hasta as string,",
+				"          estado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> xls2",
 				"csv select(mapColumn(",
 				"          ParadaHistoricaId = nro_parada,",
 				"          NombreParada = nombre_parada,",
@@ -120,7 +143,19 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select2",
 				"select1, sql union(byName: true)~> union1",
-				"union1, select2 union(byName: true)~> union2",
+				"union1, select2, select3 union(byName: true)~> union2",
+				"xls2 select(mapColumn(",
+				"          ParadaHistoricaId = nro_parada,",
+				"          NombreParada = nombre_parada,",
+				"          Zona = zona,",
+				"          Latitud = latitud,",
+				"          Longitud = longitud,",
+				"          VigenciaDesde = fecha_desde,",
+				"          VigenciaHasta = fecha_hasta,",
+				"          Estado = estado",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select3",
 				"union2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -148,12 +183,12 @@
 				"          ParadaHistoricaId,",
 				"          CodigoPublicado,",
 				"          NombreParada,",
-				"          Zona,",
-				"          Latitud,",
-				"          Longitud,",
+				"          Zona = union2@Zona,",
+				"          Latitud = union2@Latitud,",
+				"          Longitud = union2@Longitud,",
 				"          VigenciaDesde,",
 				"          VigenciaHasta,",
-				"          Estado",
+				"          Estado = union2@Estado",
 				"     )) ~> sink1"
 			]
 		}

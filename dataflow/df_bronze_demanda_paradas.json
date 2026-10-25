@@ -27,6 +27,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "xls"
+				},
+				{
+					"dataset": {
+						"referenceName": "bronze_demanda_paradas_2023_xls",
+						"type": "DatasetReference"
+					},
+					"name": "xls2"
 				}
 			],
 			"sinks": [
@@ -50,6 +57,9 @@
 				},
 				{
 					"name": "union2"
+				},
+				{
+					"name": "select3"
 				}
 			],
 			"scriptLines": [
@@ -95,6 +105,19 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> xls",
+				"source(output(",
+				"          fecha_servicio as string,",
+				"          cod_ruta as string,",
+				"          nro_parada as string,",
+				"          franja as string,",
+				"          estimacion_abordajes as string,",
+				"          estimacion_descensos as string,",
+				"          demanda_no_atendida as string,",
+				"          metodo as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> xls2",
 				"csv select(mapColumn(",
 				"          FechaServicio = fec_servicio,",
 				"          RutaHistoricaId = cod_ruta,",
@@ -120,7 +143,19 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select2",
 				"select1, sql union(byName: true)~> union1",
-				"union1, select2 union(byName: true)~> union2",
+				"union1, select2, select3 union(byName: true)~> union2",
+				"xls2 select(mapColumn(",
+				"          FechaServicio = fecha_servicio,",
+				"          RutaHistoricaId = cod_ruta,",
+				"          ParadaHistoricaId = nro_parada,",
+				"          Franja = franja,",
+				"          estimacion_abordajes,",
+				"          Descensos = estimacion_descensos,",
+				"          DemandaNoAtendida = demanda_no_atendida,",
+				"          Metodo = metodo",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select3",
 				"union2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
