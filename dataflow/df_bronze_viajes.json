@@ -9,7 +9,7 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "bronzze_viajes_csv",
+						"referenceName": "bronze_viajes_csv",
 						"type": "DatasetReference"
 					},
 					"name": "csv"
