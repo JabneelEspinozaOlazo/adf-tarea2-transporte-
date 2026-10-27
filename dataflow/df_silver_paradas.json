@@ -1,0 +1,94 @@
+{
+	"name": "df_silver_paradas",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dw_bronze_paradas_sql",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_silver_paradas_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          AnioFuente as string,",
+				"          ParadaHistoricaId as string,",
+				"          CodigoPublicado as string,",
+				"          NombreParada as string,",
+				"          Zona as string,",
+				"          Latitud as string,",
+				"          Longitud as string,",
+				"          VigenciaDesde as string,",
+				"          VigenciaHasta as string,",
+				"          Estado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source1 derive(ParadaHistoricaId = trim(ParadaHistoricaId),",
+				"          AnioFuente = iif(isNull(AnioFuente), 2024, toInteger(AnioFuente)),",
+				"          CodigoPublicado = iif(isNull(CodigoPublicado) || trim(CodigoPublicado)=='', ParadaHistoricaId, upper(trim(CodigoPublicado))),",
+				"          NombreParada = initCap(trim(regexReplace(NombreParada, '\\\\s+', ' '))),",
+				"          Zona = iif(isNull(Zona) || trim(Zona)=='' || in(['N/A','NA','NULL','-','S/D'], upper(trim(Zona))), toString(null()), initCap(trim(Zona))),",
+				"          Latitud = iif(isNull(Latitud) || trim(Latitud)=='', toDouble(null()), toDouble(replace(trim(Latitud), ',', '.'))),",
+				"          Longitud = iif(isNull(Longitud) || trim(Longitud)=='', toDouble(null()), toDouble(replace(trim(Longitud), ',', '.'))),",
+				"          VigenciaDesde = coalesce(toDate(left(trim(toString(VigenciaDesde)),10),'yyyy-MM-dd'), toDate(left(trim(toString(VigenciaDesde)),10),'dd/MM/yyyy'), toDate(left(trim(toString(VigenciaDesde)),10),'MM/dd/yyyy'), toDate(left(trim(toString(VigenciaDesde)),10),'dd-MM-yyyy')),",
+				"          VigenciaHasta = iif(isNull(VigenciaDesde) || trim(toString(VigenciaDesde))=='', toDate(null()), iif(length(trim(toString(VigenciaDesde)))==5 && regexMatch(trim(toString(VigenciaDesde)),'^[0-9]+$'), addDays(toDate('1899-12-30'), toInteger(trim(toString(VigenciaDesde)))), coalesce(toDate(left(trim(toString(VigenciaDesde)),10),'yyyy-MM-dd'), toDate(left(trim(toString(VigenciaDesde)),10),'dd/MM/yyyy')))),",
+				"          Estado = upper(trim(Estado))) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ParadaHistoricaId as string,",
+				"          CodigoPublicado as string,",
+				"          NombreParada as string,",
+				"          Zona as string,",
+				"          Latitud as decimal(9,6),",
+				"          Longitud as decimal(9,6),",
+				"          VigenciaDesde as date,",
+				"          VigenciaHasta as date,",
+				"          Estado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          ParadaHistoricaId,",
+				"          CodigoPublicado,",
+				"          NombreParada,",
+				"          Zona,",
+				"          Latitud,",
+				"          Longitud,",
+				"          VigenciaDesde,",
+				"          VigenciaHasta,",
+				"          Estado",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
