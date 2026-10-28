@@ -33,7 +33,7 @@
 					{
 						"activity": "Data flow1",
 						"dependencyConditions": [
-							"Completed"
+							"Succeeded"
 						]
 					}
 				],
@@ -64,7 +64,7 @@
 					{
 						"activity": "Data flow2",
 						"dependencyConditions": [
-							"Completed"
+							"Succeeded"
 						]
 					}
 				],
@@ -95,7 +95,7 @@
 					{
 						"activity": "Data flow3",
 						"dependencyConditions": [
-							"Completed"
+							"Succeeded"
 						]
 					}
 				],
@@ -126,7 +126,7 @@
 					{
 						"activity": "Data flow4",
 						"dependencyConditions": [
-							"Completed"
+							"Succeeded"
 						]
 					}
 				],
@@ -157,7 +157,7 @@
 					{
 						"activity": "Data flow5",
 						"dependencyConditions": [
-							"Completed"
+							"Succeeded"
 						]
 					}
 				],
