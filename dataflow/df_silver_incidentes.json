@@ -15,10 +15,24 @@
 					"name": "source1"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_silver_incidentes_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "derivedColumn3"
 				}
 			],
 			"scriptLines": [
@@ -39,7 +53,43 @@
 				"     format: 'table') ~> source1",
 				"source1 derive(IncidenteId = trim(toString(IncidenteId)),",
 				"          TipoIncidente = initCap(trim(regexReplace(toString(TipoIncidente), '\\\\s+', ' '))),",
-				"          Severidad = upper(trim(toString(Severidad)))) ~> derivedColumn1"
+				"          Severidad = upper(trim(toString(Severidad))),",
+				"          VehiculoId = iif(isNull(VehiculoId) || trim(toString(VehiculoId))=='', 'SIN_VEHICULO', upper(trim(toString(VehiculoId)))),",
+				"          Descripcion = trim(regexReplace(toString(Descripcion), '\\\\s+', ' '))) ~> derivedColumn1",
+				"derivedColumn1 derive(AnioFuente = coalesce(toInteger(AnioFuente), 2024)) ~> derivedColumn2",
+				"derivedColumn2 derive(FechaHoraInicio = toTimestamp(left(trim(toString(FechaHoraInicio)),19), 'yyyy-MM-dd HH:mm:ss'),",
+				"          FechaHoraFin = toTimestamp(left(trim(toString(FechaHoraFin)),19), 'yyyy-MM-dd HH:mm:ss'),",
+				"          FechaHoraRegistro = toTimestamp(left(trim(toString(FechaHoraRegistro)),19), 'yyyy-MM-dd HH:mm:ss')) ~> derivedColumn3",
+				"derivedColumn3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          IncidenteId as string,",
+				"          TipoIncidente as string,",
+				"          Severidad as string,",
+				"          FechaHoraInicio as timestamp,",
+				"          FechaHoraFin as timestamp,",
+				"          FechaHoraRegistro as timestamp,",
+				"          VehiculoId as string,",
+				"          Descripcion as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          IncidenteId,",
+				"          TipoIncidente,",
+				"          Severidad,",
+				"          FechaHoraInicio,",
+				"          FechaHoraFin,",
+				"          FechaHoraRegistro,",
+				"          VehiculoId,",
+				"          Descripcion",
+				"     )) ~> sink1"
 			]
 		}
 	}
