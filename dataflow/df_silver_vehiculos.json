@@ -1,0 +1,92 @@
+{
+	"name": "df_silver_vehiculos",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dw_bronze_vehiculos_sql",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_silver_vehiculos_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "derivedColumn3"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          AnioFuente as string,",
+				"          VehiculoId as string,",
+				"          Placa as string,",
+				"          TipoVehiculo as string,",
+				"          CapacidadEfectiva as string,",
+				"          VigenciaDesde as string,",
+				"          VigenciaHasta as string,",
+				"          Estado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source1 derive(VehiculoId = trim(toString(VehiculoId)),",
+				"          Placa = upper(regexReplace(trim(toString(Placa)), '\\\\s+', '')),",
+				"          TipoVehiculo = initCap(trim(regexReplace(toString(TipoVehiculo), '\\\\s+', ' '))),",
+				"          Estado = upper(trim(toString(Estado)))) ~> derivedColumn1",
+				"derivedColumn1 derive(AnioFuente = iif(isNull(AnioFuente), 2024, toInteger(AnioFuente)),",
+				"          CapacidadEfectiva = iif(isNull(CapacidadEfectiva) || trim(toString(CapacidadEfectiva))=='', toInteger(null()), toInteger(toDouble(replace(trim(toString(CapacidadEfectiva)), ',', '.'))))) ~> derivedColumn2",
+				"derivedColumn2 derive(VigenciaDesde = iif(isNull(VigenciaDesde) || trim(toString(VigenciaDesde))=='', toDate(null()), iif(regexMatch(trim(toString(VigenciaDesde)),'^[0-9]{5}$'), addDays(toDate('1899-12-30'), toInteger(trim(toString(VigenciaDesde)))), coalesce(toDate(left(trim(toString(VigenciaDesde)),10),'yyyy-MM-dd'), toDate(left(trim(toString(VigenciaDesde)),10),'dd/MM/yyyy')))),",
+				"          VigenciaHasta = iif(isNull(VigenciaHasta) || trim(toString(VigenciaHasta))=='', toDate(null()), iif(regexMatch(trim(toString(VigenciaHasta)),'^[0-9]{5}$'), addDays(toDate('1899-12-30'), toInteger(trim(toString(VigenciaHasta)))), coalesce(toDate(left(trim(toString(VigenciaHasta)),10),'yyyy-MM-dd'), toDate(left(trim(toString(VigenciaHasta)),10),'dd/MM/yyyy'))))) ~> derivedColumn3",
+				"derivedColumn3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          VehiculoId as string,",
+				"          Placa as string,",
+				"          TipoVehiculo as string,",
+				"          CapacidadEfectiva as integer,",
+				"          VigenciaDesde as date,",
+				"          VigenciaHasta as date,",
+				"          Estado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          VehiculoId,",
+				"          Placa,",
+				"          TipoVehiculo,",
+				"          CapacidadEfectiva,",
+				"          VigenciaDesde,",
+				"          VigenciaHasta,",
+				"          Estado",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
