@@ -1023,781 +1023,242 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/df_bronze_demanda_paradas')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
+			"name": "[concat(parameters('factoryName'), '/dw_silver_demanda_paradas_sql')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"folder": {
-					"name": "bronze"
+				"linkedServiceName": {
+					"referenceName": "sql_dw_transporte",
+					"type": "LinkedServiceReference"
 				},
-				"type": "MappingDataFlow",
+				"folder": {
+					"name": "silver"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "DemandaId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "FechaServicio",
+						"type": "date"
+					},
+					{
+						"name": "RutaHistoricaId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ParadaHistoricaId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Franja",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ValidacionesTarjeta",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Descensos",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DemandaNoAtendida",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Metodo",
+						"type": "nvarchar"
+					}
+				],
 				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "bronze_demanda_paradas_csv",
-								"type": "DatasetReference"
-							},
-							"name": "csv"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_demanda_paradas_sql",
-								"type": "DatasetReference"
-							},
-							"name": "sql"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_demanda_paradas_2022_xls",
-								"type": "DatasetReference"
-							},
-							"name": "xls"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_demanda_paradas_2023_xls",
-								"type": "DatasetReference"
-							},
-							"name": "xls2"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "dw_bronze_demanda_paradas_sql",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [
-						{
-							"name": "select1"
-						},
-						{
-							"name": "select2"
-						},
-						{
-							"name": "union1"
-						},
-						{
-							"name": "union2"
-						},
-						{
-							"name": "select3"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          fec_servicio as string,",
-						"          cod_ruta as string,",
-						"          nro_parada as string,",
-						"          franja as string,",
-						"          abordajes_manuales as string,",
-						"          descensos_manuales as string,",
-						"          demanda_no_atendida as string,",
-						"          medicion as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> csv",
-						"source(output(",
-						"          AnioFuente as string,",
-						"          DemandaId as string,",
-						"          FechaServicio as string,",
-						"          RutaHistoricaId as string,",
-						"          ParadaHistoricaId as string,",
-						"          Franja as string,",
-						"          ValidacionesTarjeta as string,",
-						"          Descensos as string,",
-						"          DemandaNoAtendida as string,",
-						"          Metodo as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     format: 'table') ~> sql",
-						"source(output(",
-						"          fecha_servicio as string,",
-						"          cod_ruta as string,",
-						"          nro_parada as string,",
-						"          franja as string,",
-						"          estimacion_abordajes as string,",
-						"          estimacion_descensos as string,",
-						"          demanda_no_atendida as string,",
-						"          metodo as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> xls",
-						"source(output(",
-						"          fecha_servicio as string,",
-						"          cod_ruta as string,",
-						"          nro_parada as string,",
-						"          franja as string,",
-						"          estimacion_abordajes as string,",
-						"          estimacion_descensos as string,",
-						"          demanda_no_atendida as string,",
-						"          metodo as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> xls2",
-						"csv select(mapColumn(",
-						"          FechaServicio = fec_servicio,",
-						"          RutaHistoricaId = cod_ruta,",
-						"          ParadaHistoricaId = nro_parada,",
-						"          Franja = franja,",
-						"          abordajes_manuales,",
-						"          Descensos = descensos_manuales,",
-						"          DemandaNoAtendida = demanda_no_atendida,",
-						"          medicion",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select1",
-						"xls select(mapColumn(",
-						"          FechaServicio = fecha_servicio,",
-						"          RutaHistoricaId = cod_ruta,",
-						"          ParadaHistoricaId = nro_parada,",
-						"          Franja = franja,",
-						"          estimacion_abordajes,",
-						"          Descensos = estimacion_descensos,",
-						"          DemandaNoAtendida = demanda_no_atendida,",
-						"          metodo",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select2",
-						"select1, sql union(byName: true)~> union1",
-						"union1, select2, select3 union(byName: true)~> union2",
-						"xls2 select(mapColumn(",
-						"          FechaServicio = fecha_servicio,",
-						"          RutaHistoricaId = cod_ruta,",
-						"          ParadaHistoricaId = nro_parada,",
-						"          Franja = franja,",
-						"          estimacion_abordajes,",
-						"          Descensos = estimacion_descensos,",
-						"          DemandaNoAtendida = demanda_no_atendida,",
-						"          Metodo = metodo",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select3",
-						"union2 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          AnioFuente as string,",
-						"          DemandaId as string,",
-						"          FechaServicio as string,",
-						"          RutaHistoricaId as string,",
-						"          ParadaHistoricaId as string,",
-						"          Franja as string,",
-						"          ValidacionesTarjeta as string,",
-						"          Descensos as string,",
-						"          DemandaNoAtendida as string,",
-						"          Metodo as string",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          AnioFuente,",
-						"          DemandaId,",
-						"          FechaServicio,",
-						"          RutaHistoricaId,",
-						"          ParadaHistoricaId,",
-						"          Franja,",
-						"          ValidacionesTarjeta,",
-						"          Descensos,",
-						"          DemandaNoAtendida",
-						"     )) ~> sink1"
-					]
+					"schema": "silver",
+					"table": "DemandaParadas"
 				}
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/dw_bronze_demanda_paradas_sql')]"
-			]
+			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/df_bronze_incidentes')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
+			"name": "[concat(parameters('factoryName'), '/dw_silver_incidentes_sql')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"folder": {
-					"name": "bronze"
+				"linkedServiceName": {
+					"referenceName": "sql_dw_transporte",
+					"type": "LinkedServiceReference"
 				},
-				"type": "MappingDataFlow",
+				"folder": {
+					"name": "silver"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "IncidenteId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TipoIncidente",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Severidad",
+						"type": "nvarchar"
+					},
+					{
+						"name": "FechaHoraInicio",
+						"type": "datetime2",
+						"scale": 0
+					},
+					{
+						"name": "FechaHoraFin",
+						"type": "datetime2",
+						"scale": 0
+					},
+					{
+						"name": "FechaHoraRegistro",
+						"type": "datetime2",
+						"scale": 0
+					},
+					{
+						"name": "VehiculoId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Descripcion",
+						"type": "nvarchar"
+					}
+				],
 				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "bronze_incidentes_csv",
-								"type": "DatasetReference"
-							},
-							"name": "csv"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_incidentes_sql",
-								"type": "DatasetReference"
-							},
-							"name": "sql"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_incidentes_2022_xls",
-								"type": "DatasetReference"
-							},
-							"name": "xls"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_incidentes_2023_xls",
-								"type": "DatasetReference"
-							},
-							"name": "xls2"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "dw_bronze_incidentes_sql",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [
-						{
-							"name": "select1"
-						},
-						{
-							"name": "select2"
-						},
-						{
-							"name": "union1"
-						},
-						{
-							"name": "union2"
-						},
-						{
-							"name": "select3"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          id_incidente as string,",
-						"          tipo as string,",
-						"          severidad as string,",
-						"          fecha_inicio as string,",
-						"          hora_inicio as string,",
-						"          fecha_fin as string,",
-						"          hora_fin as string,",
-						"          fecha_registro as string,",
-						"          rutas_afectadas as string,",
-						"          vehiculo_afectado as string,",
-						"          descripcion as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> csv",
-						"source(output(",
-						"          AnioFuente as string,",
-						"          IncidenteId as string,",
-						"          TipoIncidente as string,",
-						"          Severidad as string,",
-						"          FechaHoraInicio as string,",
-						"          FechaHoraFin as string,",
-						"          FechaHoraRegistro as string,",
-						"          VehiculoId as string,",
-						"          Descripcion as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     format: 'table') ~> sql",
-						"source(output(",
-						"          id_incidente as string,",
-						"          tipo as string,",
-						"          severidad as string,",
-						"          fecha_inicio as string,",
-						"          hora_inicio as string,",
-						"          fecha_fin as string,",
-						"          hora_fin as string,",
-						"          fecha_registro as string,",
-						"          rutas_afectadas as string,",
-						"          vehiculo_afectado as string,",
-						"          descripcion as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> xls",
-						"source(output(",
-						"          id_incidente as string,",
-						"          tipo as string,",
-						"          severidad as string,",
-						"          fecha_inicio as string,",
-						"          hora_inicio as string,",
-						"          fecha_fin as string,",
-						"          hora_fin as string,",
-						"          fecha_registro as string,",
-						"          rutas_afectadas as string,",
-						"          vehiculo_afectado as string,",
-						"          descripcion as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> xls2",
-						"csv select(mapColumn(",
-						"          IncidenteId = id_incidente,",
-						"          TipoIncidente = tipo,",
-						"          Severidad = severidad,",
-						"          fecha_inicio,",
-						"          FechaHoraInicio = hora_inicio,",
-						"          fecha_fin,",
-						"          FechaHoraFin = hora_fin,",
-						"          FechaHoraRegistro = fecha_registro,",
-						"          rutas_afectadas,",
-						"          vehiculo_afectado,",
-						"          Descripcion = descripcion",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select1",
-						"xls select(mapColumn(",
-						"          IncidenteId = id_incidente,",
-						"          TipoIncidente = tipo,",
-						"          Severidad = severidad,",
-						"          fecha_inicio,",
-						"          FechaHoraInicio = hora_inicio,",
-						"          fecha_fin,",
-						"          FechaHoraFin = hora_fin,",
-						"          FechaHoraRegistro = fecha_registro,",
-						"          rutas_afectadas,",
-						"          vehiculo_afectado,",
-						"          Descripcion = descripcion",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select2",
-						"select1, sql union(byName: true)~> union1",
-						"union1, select2, select3 union(byName: true)~> union2",
-						"xls2 select(mapColumn(",
-						"          IncidenteId = id_incidente,",
-						"          TipoIncidente = tipo,",
-						"          Severidad = severidad,",
-						"          fecha_inicio,",
-						"          FechaHoraInicio = hora_inicio,",
-						"          fecha_fin,",
-						"          FechaHoraFin = hora_fin,",
-						"          fecha_registro,",
-						"          rutas_afectadas,",
-						"          vehiculo_afectado,",
-						"          Descripcion = descripcion",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select3",
-						"union2 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          AnioFuente as string,",
-						"          IncidenteId as string,",
-						"          TipoIncidente as string,",
-						"          Severidad as string,",
-						"          FechaHoraInicio as string,",
-						"          FechaHoraFin as string,",
-						"          FechaHoraRegistro as string,",
-						"          VehiculoId as string,",
-						"          Descripcion as string",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
-					]
+					"schema": "silver",
+					"table": "Incidentes"
 				}
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/dw_bronze_incidentes_sql')]"
-			]
+			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/df_bronze_paradas')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
+			"name": "[concat(parameters('factoryName'), '/dw_silver_paradas_sql')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"folder": {
-					"name": "bronze"
+				"linkedServiceName": {
+					"referenceName": "sql_dw_transporte",
+					"type": "LinkedServiceReference"
 				},
-				"type": "MappingDataFlow",
+				"folder": {
+					"name": "silver"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "ParadaHistoricaId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CodigoPublicado",
+						"type": "nvarchar"
+					},
+					{
+						"name": "NombreParada",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Zona",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Latitud",
+						"type": "decimal",
+						"precision": 9,
+						"scale": 6
+					},
+					{
+						"name": "Longitud",
+						"type": "decimal",
+						"precision": 9,
+						"scale": 6
+					},
+					{
+						"name": "VigenciaDesde",
+						"type": "date"
+					},
+					{
+						"name": "VigenciaHasta",
+						"type": "date"
+					},
+					{
+						"name": "Estado",
+						"type": "nvarchar"
+					}
+				],
 				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "bronze_paradas_csv",
-								"type": "DatasetReference"
-							},
-							"name": "csv"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_paradas_sql",
-								"type": "DatasetReference"
-							},
-							"name": "sql"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_paradas_2022_xls",
-								"type": "DatasetReference"
-							},
-							"name": "xls"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_paradas_2023_xls",
-								"type": "DatasetReference"
-							},
-							"name": "xls2"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "dw_bronze_paradas_sql",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [
-						{
-							"name": "select1"
-						},
-						{
-							"name": "select2"
-						},
-						{
-							"name": "union1"
-						},
-						{
-							"name": "union2"
-						},
-						{
-							"name": "select3"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          nro_parada as string,",
-						"          nombre_parada as string,",
-						"          zona as string,",
-						"          latitud as string,",
-						"          longitud as string,",
-						"          fecha_desde as string,",
-						"          fecha_hasta as string,",
-						"          estado as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> csv",
-						"source(output(",
-						"          AnioFuente as string,",
-						"          ParadaHistoricaId as string,",
-						"          CodigoPublicado as string,",
-						"          NombreParada as string,",
-						"          Zona as string,",
-						"          Latitud as string,",
-						"          Longitud as string,",
-						"          VigenciaDesde as string,",
-						"          VigenciaHasta as string,",
-						"          Estado as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     format: 'table') ~> sql",
-						"source(output(",
-						"          nro_parada as string,",
-						"          nombre_parada as string,",
-						"          zona as string,",
-						"          latitud as string,",
-						"          longitud as string,",
-						"          fecha_desde as string,",
-						"          fecha_hasta as string,",
-						"          estado as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> xls",
-						"source(output(",
-						"          nro_parada as string,",
-						"          nombre_parada as string,",
-						"          zona as string,",
-						"          latitud as string,",
-						"          longitud as string,",
-						"          fecha_desde as string,",
-						"          fecha_hasta as string,",
-						"          estado as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> xls2",
-						"csv select(mapColumn(",
-						"          ParadaHistoricaId = nro_parada,",
-						"          NombreParada = nombre_parada,",
-						"          Zona = zona,",
-						"          Latitud = latitud,",
-						"          Longitud = longitud,",
-						"          VigenciaDesde = fecha_desde,",
-						"          {VigenciaHasta } = fecha_hasta,",
-						"          Estado = estado",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select1",
-						"xls select(mapColumn(",
-						"          ParadaHistoricaId = nro_parada,",
-						"          NombreParada = nombre_parada,",
-						"          Zona = zona,",
-						"          Latitud = latitud,",
-						"          Longitud = longitud,",
-						"          VigenciaDesde = fecha_desde,",
-						"          {VigenciaHasta  } = fecha_hasta,",
-						"          Estado = estado",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select2",
-						"select1, sql union(byName: true)~> union1",
-						"union1, select2, select3 union(byName: true)~> union2",
-						"xls2 select(mapColumn(",
-						"          ParadaHistoricaId = nro_parada,",
-						"          NombreParada = nombre_parada,",
-						"          Zona = zona,",
-						"          Latitud = latitud,",
-						"          Longitud = longitud,",
-						"          VigenciaDesde = fecha_desde,",
-						"          VigenciaHasta = fecha_hasta,",
-						"          Estado = estado",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select3",
-						"union2 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          AnioFuente as string,",
-						"          ParadaHistoricaId as string,",
-						"          CodigoPublicado as string,",
-						"          NombreParada as string,",
-						"          Zona as string,",
-						"          Latitud as string,",
-						"          Longitud as string,",
-						"          VigenciaDesde as string,",
-						"          VigenciaHasta as string,",
-						"          Estado as string",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
-					]
+					"schema": "silver",
+					"table": "Paradas"
 				}
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/dw_bronze_paradas_sql')]"
-			]
+			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/df_bronze_rutas')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
+			"name": "[concat(parameters('factoryName'), '/dw_silver_rutas_sql')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"folder": {
-					"name": "bronze"
+				"linkedServiceName": {
+					"referenceName": "sql_dw_transporte",
+					"type": "LinkedServiceReference"
 				},
-				"type": "MappingDataFlow",
+				"folder": {
+					"name": "silver"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "RutaHistoricaId",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CodigoRuta",
+						"type": "nvarchar"
+					},
+					{
+						"name": "NombreRuta",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Origen",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Destino",
+						"type": "nvarchar"
+					},
+					{
+						"name": "VigenciaDesde",
+						"type": "date"
+					},
+					{
+						"name": "VigenciaHasta",
+						"type": "date"
+					},
+					{
+						"name": "Estado",
+						"type": "nvarchar"
+					}
+				],
 				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "bronze_rutas_csv",
-								"type": "DatasetReference"
-							},
-							"name": "csv"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_rutas_sql",
-								"type": "DatasetReference"
-							},
-							"name": "sql"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_rutas_2022_xls",
-								"type": "DatasetReference"
-							},
-							"name": "xls"
-						},
-						{
-							"dataset": {
-								"referenceName": "bronze_rutas_2023_xls",
-								"type": "DatasetReference"
-							},
-							"name": "xls2"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "dw_bronze_rutas_sql",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [
-						{
-							"name": "select1"
-						},
-						{
-							"name": "select2"
-						},
-						{
-							"name": "union1"
-						},
-						{
-							"name": "union2"
-						},
-						{
-							"name": "select3"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          cod_ruta as string,",
-						"          nombre_ruta as string,",
-						"          origen as string,",
-						"          destino as string,",
-						"          fecha_desde as string,",
-						"          fecha_hasta as string,",
-						"          estado as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> csv",
-						"source(output(",
-						"          AnioFuente as string,",
-						"          RutaHistoricaId as string,",
-						"          CodigoRuta as string,",
-						"          NombreRuta as string,",
-						"          Origen as string,",
-						"          Destino as string,",
-						"          VigenciaDesde as string,",
-						"          VigenciaHasta as string,",
-						"          Estado as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     format: 'table') ~> sql",
-						"source(output(",
-						"          cod_ruta as string,",
-						"          nombre_ruta as string,",
-						"          origen as string,",
-						"          destino as string,",
-						"          fecha_desde as string,",
-						"          fecha_hasta as string,",
-						"          estado as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> xls",
-						"source(output(",
-						"          cod_ruta as string,",
-						"          nombre_ruta as string,",
-						"          origen as string,",
-						"          destino as string,",
-						"          fecha_desde as string,",
-						"          fecha_hasta as string,",
-						"          estado as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> xls2",
-						"csv select(mapColumn(",
-						"          CodigoRuta = cod_ruta,",
-						"          NombreRuta = nombre_ruta,",
-						"          Origen = origen,",
-						"          Destino = destino,",
-						"          VigenciaDesde = fecha_desde,",
-						"          VigenciaHasta = fecha_hasta,",
-						"          Estado = estado",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select1",
-						"xls select(mapColumn(",
-						"          CodigoRuta = cod_ruta,",
-						"          NombreRuta = nombre_ruta,",
-						"          Origen = origen,",
-						"          Destino = destino,",
-						"          VigenciaDesde = fecha_desde,",
-						"          VigenciaHasta = fecha_hasta,",
-						"          Estado = estado",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select2",
-						"select1, sql union(byName: true)~> union1",
-						"union1, select2, select3 union(byName: true)~> union2",
-						"xls2 select(mapColumn(",
-						"          CodigoRuta = cod_ruta,",
-						"          NombreRuta = nombre_ruta,",
-						"          Origen = origen,",
-						"          Destino = destino,",
-						"          VigenciaDesde = fecha_desde,",
-						"          VigenciaHasta = fecha_hasta,",
-						"          Estado = estado",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select3",
-						"union2 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          AnioFuente as string,",
-						"          RutaHistoricaId as string,",
-						"          CodigoRuta as string,",
-						"          NombreRuta as string,",
-						"          Origen as string,",
-						"          Destino as string,",
-						"          VigenciaDesde as string,",
-						"          VigenciaHasta as string,",
-						"          Estado as string",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
-					]
+					"schema": "silver",
+					"table": "Rutas"
 				}
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/bronze_rutas_csv')]",
-				"[concat(variables('factoryId'), '/datasets/bronze_rutas_sql')]",
-				"[concat(variables('factoryId'), '/datasets/dw_bronze_rutas_sql')]"
-			]
+			"dependsOn": []
 		}
 	]
 }
